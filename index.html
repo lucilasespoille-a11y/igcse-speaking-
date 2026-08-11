@@ -1034,7 +1034,7 @@ event.target.classList.add('active');
 loadAdminPanel();
 }
 
-async function addAllowedEmail(){
+async function addAllowedEmail(){ const email = document.getElementById('newEmail').value.trim().toLowerCase(); if(!email||!email.includes('@')){alert('Email invalido');return} const emails = await getAllowedEmails(); if(emails.includes(email)){alert('Este email ya esta autorizado');return} emails.push(email); localStorage.setItem('igcse_allowed_emails',JSON.stringify(emails)); if(db){   try{await saveAllowedEmails(emails);}catch(e){console.warn('Firebase offline, guardado localmente');} } document.getElementById('newEmail').value=''; loadAdminPanel(); }
 const email = document.getElementById('newEmail').value.trim().toLowerCase();
 if(!email||!email.includes('@')){alert('Email invalido');return}
 const emails = await getAllowedEmails();
