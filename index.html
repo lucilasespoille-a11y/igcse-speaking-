@@ -1028,37 +1028,35 @@ div.innerHTML = sorted.map(s=>{
 }
 
 function sortStudents(criteria){
-studentSort = criteria;
-document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
-event.target.classList.add('active');
-loadAdminPanel();
+  studentSort = criteria;
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  loadAdminPanel();
 }
 
 async function addAllowedEmail(){ const email = document.getElementById('newEmail').value.trim().toLowerCase(); if(!email||!email.includes('@')){alert('Email invalido');return} const emails = await getAllowedEmails(); if(emails.includes(email)){alert('Este email ya esta autorizado');return} emails.push(email); localStorage.setItem('igcse_allowed_emails',JSON.stringify(emails)); if(db){   try{await saveAllowedEmails(emails);}catch(e){console.warn('Firebase offline, guardado localmente');} } document.getElementById('newEmail').value=''; loadAdminPanel(); }
-const email = document.getElementById('newEmail').value.trim().toLowerCase();
-if(!email||!email.includes('@')){alert('Email invalido');return}
-const emails = await getAllowedEmails();
-if(emails.includes(email)){alert('Este email ya esta autorizado');return}
-emails.push(email);
-await saveAllowedEmails(emails);
-document.getElementById('newEmail').value='';
-loadAdminPanel();
-}
 
 async function removeEmail(email){
-if(!confirm(`Eliminar a ${email}?`)) return;
-let emails = await getAllowedEmails();
-emails = emails.filter(e=>e!==email);
-await saveAllowedEmails(emails);
-loadAdminPanel();
+  const emails = await getAllowedEmails();
+  const idx = emails.indexOf(email);
+  if(idx > -1){
+    emails.splice(idx, 1);
+    localStorage.setItem('igcse_allowed_emails', JSON.stringify(emails));
+    if(db){
+      try{ await saveAllowedEmails(emails); }catch(e){ console.warn('Firebase offline'); }
+    }
+    loadAdminPanel();
+  }
 }
 
-// ===================== INIT =====================
 (async function init(){
-if(!db){
-  let emails = JSON.parse(localStorage.getItem('igcse_allowed_emails')||'[]');
-  if(!emails.includes(ADMIN_EMAIL)){emails.unshift(ADMIN_EMAIL);localStorage.setItem('igcse_allowed_emails',JSON.stringify(emails));}
-}
+  if(!db){
+    let emails = JSON.parse(localStorage.getItem('igcse_allowed_emails')||'[]');
+    if(!emails.includes(ADMIN_EMAIL)){
+      emails.unshift(ADMIN_EMAIL);
+      localStorage.setItem('igcse_allowed_emails',JSON.stringify(emails));
+    }
+  }
 })();
 </script>
 </body>
