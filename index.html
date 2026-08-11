@@ -204,6 +204,7 @@ label{display:block;margin-bottom:6px;font-weight:600;font-size:.9rem;color:#475
 <button class="btn btn-success hidden" id="btnNext" onclick="examNext()">Continuar</button>
 <button class="btn btn-danger hidden" id="btnRecord" onclick="toggleRecord()">🎤 Grabar respuesta</button>
 <button class="btn btn-accent hidden" id="btnFinish" onclick="examFinish()">Ver resultados</button>
+<button class="btn btn-outline" id="btnCancel" onclick="cancelExam()" style="margin-top:8px">← Volver al Dashboard</button>
 </div>
 <div class="card hidden" id="transcriptCard">
 <h3>Lo que dijiste:</h3>
@@ -871,6 +872,32 @@ currentUser.weaknesses.slice(0,3).forEach(w=>{
   }
 });
 if(!exDiv.innerHTML) exDiv.innerHTML='<p style="color:#64748b">Buen trabajo! No se detectaron debilidades especificas. Sigue practicando con el examen completo.</p>';
+}
+  
+function cancelExam(){
+if(isRecording) toggleRecord();
+clearInterval(timerInterval);
+synth.cancel();
+currentExam = {mode:'',phase:0,topic:'',qIndex:0,card:null,answers:[],transcript:'',startTime:null};
+document.getElementById('examSection').classList.add('hidden');
+document.getElementById('dashSection').classList.remove('hidden');
+document.getElementById('bottomNav').style.display='flex';
+document.getElementById('pageTitle').textContent='Dashboard';
+document.getElementById('cardBox').style.display='none';
+document.getElementById('transcriptCard').classList.add('hidden');
+document.getElementById('examTimer').classList.add('hidden');
+document.getElementById('waveform').classList.add('hidden');
+document.getElementById('examinerBox').classList.remove('recording');
+document.getElementById('btnStart').classList.remove('hidden');
+document.getElementById('btnStart').textContent='Iniciar';
+document.getElementById('btnStart').onclick=examAction;
+document.getElementById('btnNext').classList.add('hidden');
+document.getElementById('btnNext').textContent='Continuar';
+document.getElementById('btnNext').onclick=examNext;
+document.getElementById('btnRecord').classList.add('hidden');
+document.getElementById('btnRecord').textContent='🎤 Grabar respuesta';
+document.getElementById('btnFinish').classList.add('hidden');
+document.getElementById('btnCancel').classList.add('hidden');
 }
 
 // ===================== SHADOWING =====================
