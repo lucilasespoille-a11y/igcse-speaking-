@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IGCSE 0510 Speaking Trainer</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--primary:#1e3a8a;--secondary:#3b82f6;--accent:#f59e0b;--success:#10b981;--danger:#ef4444;--bg:#f8fafc;--card:#fff;--text:#1e2937}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);line-height:1.5;overflow-x:hidden}
+.hidden{display:none!important}
+.btn{border:none;border-radius:12px;padding:14px 24px;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;width:100%;margin-bottom:10px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-secondary{background:var(--secondary);color:#fff}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+.btn:active{transform:scale(.97)}
+input,select{width:100%;padding:14px;border:2px solid #e2e8f0;border-radius:12px;font-size:1rem;margin-bottom:12px}
+input:focus{outline:none;border-color:var(--secondary)}
+label{display:block;margin-bottom:6px;font-weight:600;font-size:.9rem;color:#475569}
+.auth-container{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);padding:20px}
+.auth-box{background:#fff;padding:28px;border-radius:20px;width:100%;max-width:420px;box-shadow:0 25px 50px rgba(0,0,0,.25)}
+.auth-box h1{color:var(--primary);font-size:1.6rem;margin-bottom:6px}
+.auth-box p{color:#64748b;margin-bottom:20px;font-size:.95rem}
+.error-msg{color:var(--danger);font-size:.85rem;margin-top:-8px;margin-bottom:12px;display:none}
+.app{display:none;min-height:100vh;padding-bottom:80px}
+.topbar{position:sticky;top:0;z-index:100;background:var(--primary);color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{font-size:1.1rem}
+.menu-btn{background:none;border:none;color:#fff;font-size:1.5rem}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;display:flex;justify-content:space-around;padding:8px 0;z-index:100}
+.bottom-nav button{background:none;border:none;font-size:.7rem;color:#64748b;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px}
+.bottom-nav button.active{color:var(--primary);font-weight:600}
+.bottom-nav button span{font-size:1.3rem}
+.section{padding:20px;max-width:800px;margin:0 auto;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card h2{font-size:1.15rem;color:var(--primary);margin-bottom:12px}
+.card h3{font-size:1rem;margin-bottom:8px}
+.examiner-box{background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:#fff;padding:28px 20px;border-radius:20px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.examiner-avatar{font-size:4rem;margin-bottom:8px}
+.examiner-name{font-size:.85rem;color:#94a3b8;margin-bottom:12px}
+.examiner-text{font-size:1.2rem;line-height:1.5;min-height:3.5rem;margin-bottom:16px}
+.waveform{display:flex;justify-content:center;gap:3px;height:30px;align-items:flex-end;margin:12px 0}
+.waveform span{width:4px;background:var(--accent);border-radius:2px;animation:wave 1s ease-in-out infinite}
+.waveform span:nth-child(2){animation-delay:.1s;height:60%}
+.waveform span:nth-child(3){animation-delay:.2s;height:80%}
+.waveform span:nth-child(4){animation-delay:.3s;height:40%}
+.waveform span:nth-child(5){animation-delay:.4s;height:70%}
+@keyframes wave{0%,100%{height:20%}50%{height:100%}}
+.recording .waveform span{background:var(--danger)}
+.timer{font-size:3rem;font-weight:700;font-family:monospace;color:var(--accent);margin:8px 0}
+.status-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600;background:rgba(255,255,255,.15);margin-bottom:12px}
+.feedback-box{background:#f0fdf4;border-left:4px solid var(--success);padding:16px;border-radius:0 12px 12px 0;margin-top:12px}
+.feedback-box.warning{background:#fffbeb;border-left-color:var(--accent)}
+.feedback-box.error{background:#fef2f2;border-left-color:var(--danger)}
+.score-row{display:flex;justify-content:space-between;align-items:center;margin:8px 0}
+.score-bar{flex:1;height:8px;background:#e2e8f0;border-radius:4px;margin:0 12px;overflow:hidden}
+.score-fill{height:100%;background:var(--secondary);border-radius:4px;transition:width .5s}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tag{padding:6px 12px;border-radius:20px;font-size:.75rem;font-weight:600;background:#dbeafe;color:#1e40af}
+.tag.weak{background:#fee2e2;color:#991b1b}
+.tag.strong{background:#d1fae5;color:#065f46}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--card);padding:16px;border-radius:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.stat-card .num{font-size:2rem;font-weight:700;color:var(--primary)}
+.stat-card .label{font-size:.75rem;color:#64748b;text-transform:uppercase;margin-top:4px}
+.modules{display:grid;grid-template-columns:1fr;gap:12px}
+.module-card{background:var(--card);border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer;transition:all .2s;border:2px solid transparent}
+.module-card:active{transform:scale(.98)}
+.module-card .icon{font-size:2.5rem;margin-bottom:8px}
+.module-card h3{margin-bottom:6px;color:var(--primary)}
+.module-card p{color:#64748b;font-size:.9rem}
+.table{width:100%;border-collapse:collapse;font-size:.9rem}
+.table th,.table td{padding:10px;text-align:left;border-bottom:1px solid #e2e8f0}
+.table th{color:#64748b;font-size:.75rem;text-transform:uppercase}
+.delete-btn{color:var(--danger);background:none;border:none;font-size:1.2rem;cursor:pointer}
+.circle-wrap{width:80px;height:80px;margin:0 auto 8px;position:relative}
+.circle-bg{fill:none;stroke:#e2e8f0;stroke-width:8}
+.circle{fill:none;stroke:var(--secondary);stroke-width:8;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .5s}
+.circle-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-weight:700;font-size:1.1rem}
+.alert{background:#dbeafe;color:#1e40af;padding:14px 16px;border-radius:12px;margin-bottom:16px;font-size:.9rem}
+.tips{background:#f1f5f9;padding:16px;border-radius:12px;font-size:.9rem}
+.tips li{margin-left:18px;margin-bottom:6px}
+.student-row{padding:14px;border-bottom:1px solid #e2e8f0}
+.student-row .name{font-weight:600}
+.student-row .meta{font-size:.85rem;color:#64748b;margin-top:4px}
+.student-row .stats{display:flex;gap:12px;margin-top:8px;font-size:.85rem;flex-wrap:wrap}
+.student-row .stat{display:flex;align-items:center;gap:4px}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot.online{background:var(--success)}
+.dot.offline{background:#cbd5e1}
+.sort-btn{background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:.8rem;cursor:pointer;margin-right:6px}
+.sort-btn.active{background:var(--primary);color:#fff}
+.paper-badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:.7rem;font-weight:700;background:#e0e7ff;color:#3730a3;margin-left:8px}
+@media(min-width:768px){.modules{grid-template-columns:repeat(2,1fr)}.stat-grid{grid-template-columns:repeat(4,1fr)}.bottom-nav{display:none}.app{padding-bottom:20px}}
+</style>
+</head>
+<body>
+
+<div class="auth-container" id="loginScreen">
+<div class="auth-box">
+<h1>IGCSE 0510 Speaking</h1>
+<p>Simulador con past papers O/N 2024</p>
+<div id="loginForm">
+<label>Email</label>
+<input type="email" id="loginEmail" placeholder="tu@email.com">
+<div class="error-msg" id="loginError">Email no autorizado</div>
+<label>Contraseña</label>
+<input type="password" id="loginPass" placeholder="******">
+<button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+<button class="btn btn-outline" onclick="showRegister()">Soy nuevo / Registrarme</button>
+</div>
+<div id="registerForm" class="hidden">
+<label>Tu nombre completo</label>
+<input type="text" id="regName" placeholder="Ej: Maria Garcia">
+<label>Email (autorizado por tu profesor)</label>
+<input type="email" id="regEmail" placeholder="tu@email.com">
+<div class="error-msg" id="regError">Este email no esta autorizado</div>
+<label>Crear contraseña</label>
+<input type="password" id="regPass" placeholder="Minimo 6 caracteres">
+<button class="btn btn-success" onclick="doRegister()">Crear cuenta</button>
+<button class="btn btn-outline" onclick="showLogin()">Ya tengo cuenta</button>
+</div>
+</div>
+</div>
+
+<div class="app" id="appScreen">
+<div class="topbar">
+<h1 id="pageTitle">Dashboard</h1>
+<button class="menu-btn" onclick="logout()">Salir</button>
+</div>
+
+<section class="section" id="dashSection">
+<div class="stat-grid">
+<div class="stat-card"><div class="num" id="stSessions">0</div><div class="label">Practicas</div></div>
+<div class="stat-card"><div class="num" id="stScore">--</div><div class="label">Promedio</div></div>
+<div class="stat-card"><div class="num" id="stTime">0</div><div class="label">Minutos</div></div>
+<div class="stat-card"><div class="num" id="stLevel">B1</div><div class="label">Nivel</div></div>
+</div>
+<div class="card">
+<h2>Que quieres practicar hoy?</h2>
+<div class="modules">
+<div class="module-card" onclick="startFullMock()">
+<div class="icon">⏱️</div>
+<h3>Examen Completo</h3>
+<p>Simula el examen real de 10-15 min con warm-up, Part 1, 2 y 3.</p>
+</div>
+<div class="module-card" onclick="startPart('part1')">
+<div class="icon">🎤</div>
+<h3>Part 1: Interview</h3>
+<p>Preguntas personales sobre temas cotidianos. 2-3 minutos.</p>
+</div>
+<div class="module-card" onclick="startPart('part2')">
+<div class="icon">📝</div>
+<h3>Part 2: Short Talk</h3>
+<p>30 tarjetas reales de tus past papers O/N 2024. 1 min prep + 2 min talk.</p>
+</div>
+<div class="module-card" onclick="startPart('part3')">
+<div class="icon">💬</div>
+<h3>Part 3: Discussion</h3>
+<p>Preguntas abstractas y de opinion relacionadas con el tema.</p>
+</div>
+<div class="module-card" onclick="startAdaptive()">
+<div class="icon">🎯</div>
+<h3>Practica Adaptativa</h3>
+<p>Ejercicios personalizados segun tus debilidades detectadas.</p>
+</div>
+<div class="module-card" onclick="startShadowing()">
+<div class="icon">🎧</div>
+<h3>Shadowing</h3>
+<p>Escucha frases modelo del IGCSE y repitelas.</p>
+</div>
+</div>
+</div>
+<div class="card" id="weaknessCard" style="display:none">
+<h2>Areas a mejorar</h2>
+<div class="tags" id="weaknessTags"></div>
+<div style="margin-top:12px;font-size:.9rem;color:#64748b" id="weaknessAdvice"></div>
+</div>
+</section>
+
+<section class="section hidden" id="examSection">
+<div class="examiner-box" id="examinerBox">
+<div class="status-badge" id="examBadge">WARM-UP</div>
+<div class="examiner-avatar">👨‍🏫</div>
+<div class="examiner-name">Tu examinador IGCSE</div>
+<div class="examiner-text" id="examText">Presiona Iniciar para comenzar.</div>
+<div class="waveform hidden" id="waveform"><span></span><span></span><span></span><span></span><span></span></div>
+<div class="timer hidden" id="examTimer">01:00</div>
+</div>
+<div class="card" id="cardBox" style="display:none">
+<h3 id="cardTitle">Topic Card</h3>
+<p style="margin:8px 0"><strong>A:</strong> <span id="cardA">Option A</span></p>
+<p><strong>B:</strong> <span id="cardB">Option B</span></p>
+<p style="margin-top:10px;font-size:.85rem;color:#64748b">Consider: <span id="cardPoints">cost, convenience</span></p>
+<p style="margin-top:8px;font-size:.85rem;color:#94a3b8" id="cardPaper"></p>
+</div>
+<div class="controls" style="padding:0 20px">
+<button class="btn btn-primary" id="btnStart" onclick="examAction()">Iniciar</button>
+<button class="btn btn-success hidden" id="btnNext" onclick="examNext()">Continuar</button>
+<button class="btn btn-danger hidden" id="btnRecord" onclick="toggleRecord()">🎤 Grabar respuesta</button>
+<button class="btn btn-accent hidden" id="btnFinish" onclick="examFinish()">Ver resultados</button>
+</div>
+<div class="card hidden" id="transcriptCard">
+<h3>Lo que dijiste:</h3>
+<p id="transcriptText" style="font-style:italic;color:#64748b;margin-top:8px">--</p>
+</div>
+</section>
+
+<section class="section hidden" id="feedbackSection">
+<div class="card">
+<h2>Resultados de tu practica</h2>
+<div style="text-align:center;margin:20px 0">
+<div class="circle-wrap">
+<svg width="80" height="80" viewBox="0 0 80 80">
+<circle class="circle-bg" cx="40" cy="40" r="32"/>
+<circle class="circle" id="scoreCircle" cx="40" cy="40" r="32" stroke-dasharray="201" stroke-dashoffset="201"/>
+</svg>
+<div class="circle-text" id="scoreTotal">--</div>
+</div>
+<p style="color:#64748b;font-size:.9rem">sobre 40 puntos</p>
+</div>
+<div class="score-row"><span>Grammar</span><div class="score-bar"><div class="score-fill" id="barGram" style="width:0%"></div></div><span id="txtGram">--</span></div>
+<div class="score-row"><span>Vocabulary</span><div class="score-bar"><div class="score-fill" id="barVoc" style="width:0%"></div></div><span id="txtVoc">--</span></div>
+<div class="score-row"><span>Development & Fluency</span><div class="score-bar"><div class="score-fill" id="barFlu" style="width:0%"></div></div><span id="txtFlu">--</span></div>
+<div class="score-row"><span>Pronunciation</span><div class="score-bar"><div class="score-fill" id="barPro" style="width:0%"></div></div><span id="txtPro">--</span></div>
+</div>
+<div class="card">
+<h3>Feedback del examinador</h3>
+<div id="feedbackText" style="margin-top:10px;line-height:1.6"></div>
+<div class="tags" id="feedbackTags"></div>
+</div>
+<div class="card">
+<h3>Ejercicios recomendados para ti</h3>
+<div id="adaptiveExercises"></div>
+</div>
+<div style="padding:0 20px 40px">
+<button class="btn btn-primary" onclick="backToDash()">Volver al Dashboard</button>
+<button class="btn btn-secondary" onclick="retrySame()">Repetir esta parte</button>
+</div>
+</section>
+
+<section class="section hidden" id="progressSection">
+<div class="card">
+<h2>Tu historial de practica</h2>
+<div id="progressHistory"></div>
+</div>
+</section>
+
+<section class="section hidden" id="adminSection">
+<div class="card">
+<h2>Panel del Profesor</h2>
+<p style="color:#64748b;margin-bottom:16px;font-size:.9rem">Gestiona que alumnos pueden acceder y ve su progreso.</p>
+<div style="display:flex;gap:8px;margin-bottom:16px">
+<input type="email" id="newEmail" placeholder="email@alumno.com" style="flex:1;margin-bottom:0">
+<button class="btn btn-success" style="width:auto;padding:14px 20px" onclick="addAllowedEmail()">+ Autorizar</button>
+</div>
+<h3>Emails autorizados (<span id="emailCount">0</span>)</h3>
+<table class="table" id="emailTable">
+<thead><tr><th>Email</th><th>Estado</th><th></th></tr></thead>
+<tbody id="emailList"></tbody>
+</table>
+</div>
+<div class="card">
+<h2>Seguimiento de Alumnos</h2>
+<div style="margin-bottom:12px">
+<button class="sort-btn active" onclick="sortStudents('name')">Nombre</button>
+<button class="sort-btn" onclick="sortStudents('score')">Nota</button>
+<button class="sort-btn" onclick="sortStudents('sessions')">Practicas</button>
+<button class="sort-btn" onclick="sortStudents('last')">Ultima vez</button>
+</div>
+<div id="studentsProgress" style="max-height:500px;overflow-y:auto"><p style="color:#64748b">Cargando...</p></div>
+</div>
+<div class="card">
+<h2>Resumen de la clase</h2>
+<div class="stat-grid" style="grid-template-columns:repeat(2,1fr)">
+<div class="stat-card"><div class="num" id="admTotalStudents">0</div><div class="label">Alumnos</div></div>
+<div class="stat-card"><div class="num" id="admTotalSessions">0</div><div class="label">Practicas totales</div></div>
+<div class="stat-card"><div class="num" id="admAvgScore">--</div><div class="label">Nota promedio</div></div>
+<div class="stat-card"><div class="num" id="admActiveToday">0</div><div class="label">Activos hoy</div></div>
+</div>
+</div>
+</section>
+
+<nav class="bottom-nav" id="bottomNav">
+<button class="active" onclick="navTo('dash')"><span>🏠</span>Inicio</button>
+<button onclick="navTo('progress')"><span>📈</span>Progreso</button>
+<button onclick="navTo('admin')" id="adminBtn" style="display:none"><span>⚙️</span>Profesor</button>
+</nav>
+</div>
+
+<script>
+
+// ===================== FIREBASE CONFIG =====================
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  projectId: "TU_PROYECTO",
+  storageBucket: "TU_PROYECTO.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
+};
+
+let db = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  console.log("Firebase OK");
+} catch(e) {
+  console.warn("Firebase offline", e);
+}
+
+// ===================== EXAM DATA - PAST PAPERS O/N 2024 =====================
+const EXAM_DATA = {
+part1: {
+"Food":["Can you tell me about your favourite food? Why do you like it?","Do you think eating out is better than cooking at home? Why?","What kind of food is popular with young people in your country?","Do you think it's important to eat healthy food? Why or why not?"],
+"Transport":["How do you usually travel to school or work?","What is the most popular means of transport in your country?","Do you think travelling by car is better than using public transport?","What problems does traffic cause in your area?"],
+"Technology":["How often do you use the internet?","Do you think young people spend too much time on their phones?","What is your favourite app or website? Why?","Do you think technology makes life easier or more complicated?"],
+"School":["What do you like most about your school?","Do you think homework is important? Why or why not?","What would you change about your school if you could?","Do you prefer studying alone or in groups?"],
+"Environment":["What environmental problems are there in your area?","Do you think recycling is important? Why?","What can young people do to protect the environment?","Should governments do more to stop pollution?"],
+"Holidays":["Can you tell me about your last holiday?","Do you prefer holidays in the city or in the countryside?","What do you usually do during school holidays?","Is it better to travel abroad or stay in your own country?"],
+"Films":["Can you tell me about films which are popular with young people?","Can you tell me about your favourite film character when you were a child?","Do you think watching films is more enjoyable than reading books?","What type of films do you dislike? Why?"],
+"Sports":["What sports are popular in your country?","Do you prefer watching or playing sports? Why?","What are the benefits of doing regular exercise?","Should sports be compulsory at school?"],
+"Friends":["Can you tell me about your best friend?","Do you prefer to have a large group of friends or a few close friends?","How do you keep in touch with friends who live far away?","What do you usually do when you meet your friends?"],
+"Clothes":["Can you tell me about your favourite item of clothing?","Do you prefer wearing casual or formal clothes? Why?","How important is fashion to young people in your country?","Do you think it is better to mend old clothes or buy new ones?"]
+},
+
+// 30 CARDS FROM PAST PAPERS O/N 2024
+part2: [
+// Paper 0510/32 (A-J)
+{paper:"0510/32",topic:"Choosing a holiday",a:"Going to the seaside with your family",b:"Going to the mountains with your friends",points:["how enjoyable"],prompt:"Talk about how enjoyable each option would be. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"School event",a:"A fashion show, with clothes made by students",b:"A music concert, with students performing",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"Photographs",a:"Taking a picture of a beautiful landscape while on holiday",b:"Taking a picture of your friends or family during a celebration",points:["how easy or difficult"],prompt:"Talk about how easy or difficult each option would be. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"Enjoying music",a:"Learning to play a musical instrument",b:"Learning traditional singing",points:["how easy or difficult"],prompt:"Talk about how easy or difficult each option would be. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"Keeping fit",a:"Going jogging in your neighbourhood",b:"Joining a local sports centre",points:["how easy or difficult"],prompt:"Talk about how easy or difficult each option would be. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"Staying in touch",a:"Visiting them once a month",b:"Having a video call once a week",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"Eating at home",a:"Cooking a meal yourself",b:"Ordering food from a restaurant",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"New experiences",a:"Going on a trip to a place that you have never visited",b:"Taking a course to learn a practical skill, such as sewing or home cooking",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"Helping the environment",a:"Using less electricity in your home",b:"Buying fewer new clothes",points:["how easy or difficult"],prompt:"Explain how easy or difficult each option would be. Say which option you would prefer, and why."},
+{paper:"0510/32",topic:"A special visit",a:"Going to your favourite shopping mall",b:"Visiting a new museum and art gallery in the town",points:["how enjoyable"],prompt:"Talk about how enjoyable each option would be. Say which you would prefer, and why."},
+
+// Paper 0510/33 (A-J)
+{paper:"0510/33",topic:"A free afternoon",a:"Going to a shopping centre",b:"Going for a walk in the countryside",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"Learning about nature",a:"Helping with small animals at a local zoo",b:"Looking after plants at a local garden centre",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"A famous speaker",a:"A social media star",b:"A sports champion",points:["how popular"],prompt:"Talk about how popular each option would be. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"A day out",a:"Going to an outdoor concert",b:"Visiting a historical building",points:["how enjoyable"],prompt:"Talk about how enjoyable each option would be. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"A surprise",a:"A party at your house",b:"A restaurant meal with family and friends",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"Joining a club",a:"A fitness club",b:"An art club",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"Helping your community",a:"Picking up litter in streets and parks",b:"Helping older people with shopping",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"A visit from a friend",a:"Spending the day at your home",b:"Showing your friend around your local town or city",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"A new room for your school",a:"A games room",b:"A room for quiet study",points:["how popular"],prompt:"Talk about how popular each option would be. Say which option you would prefer, and why."},
+{paper:"0510/33",topic:"Writing an article",a:"Describing your favourite place in your town",b:"Writing about a recent school event",points:["how interesting"],prompt:"Talk about how interesting each option would be. Say which option you would prefer, and why."},
+
+// Paper 0510/31 (A-J)
+{paper:"0510/31",topic:"Clothes",a:"Mending your clothes",b:"Buying new clothes",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"Holiday activities",a:"A sightseeing holiday in a city",b:"A seaside holiday doing water sports",points:["how enjoyable"],prompt:"Talk about how enjoyable each option would be for you and your family. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"Travelling to school",a:"By bicycle",b:"By public transport",points:["how easy or difficult"],prompt:"Explain how easy or difficult each option would be for you. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"Sports",a:"A sport that you play by yourself",b:"A sport that you play as part of a team",points:["how enjoyable"],prompt:"Talk about how enjoyable each option would be. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"Research",a:"Researching the event online",b:"Talking to people who took part in the event",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"A birthday meal",a:"Cooking a special meal",b:"Going to a luxury restaurant",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"School improvements",a:"Redecorating the school visitor area",b:"Redesigning the school playground",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"Watching films",a:"Listening to your parents' suggestions",b:"Reading online reviews",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"Volunteering",a:"Picking up litter in your area",b:"Helping to plant trees in the local park",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."},
+{paper:"0510/31",topic:"New developments",a:"A luxury 5-star hotel",b:"A sports and fitness centre",points:["advantages and disadvantages"],prompt:"Talk about the advantages and disadvantages of each option. Say which option you would prefer, and why."}
+],
+
+part3: {
+"Choosing a holiday":["Do you think people should take more holidays for their mental health?","What are the disadvantages of mass tourism?","Is it better to travel with family or friends? Why?","Do you think virtual tourism will replace real travel in the future?"],
+"School event":["Do you think schools organise enough events for students?","What are the benefits of students organising events themselves?","Should schools focus more on academic work or extracurricular activities?","Do you think traditional school events are disappearing?"],
+"Photographs":["Do you think people take too many photos nowadays?","Is it better to keep photos digitally or print them?","Do you think social media has changed the way we share photos?","Should photography be taught in schools?"],
+"Enjoying music":["Do you think learning music is important for children?","Should music lessons be free in schools?","What role does music play in different cultures?","Do you think traditional music is disappearing?"],
+"Keeping fit":["Do you think governments should do more to encourage exercise?","Is team sport better than individual exercise? Why?","What are the dangers of doing too much exercise?","Should fitness classes be compulsory at school?"],
+"Staying in touch":["Do you think social media helps or harms friendships?","Is it better to communicate face-to-face or online?","Do you think people will travel less to visit friends in the future?","What are the disadvantages of online communication?"],
+"Eating at home":["Do you think fast food should be banned near schools?","Is it the government's responsibility to make people eat healthily?","Do you think cooking should be taught in all schools?","What do you think about food delivery apps? Are they a good thing?"],
+"New experiences":["Do you think it is important to try new things? Why?","Are young people today less adventurous than in the past?","Should schools organise more trips to new places?","Is it better to have a routine or to try new things regularly?"],
+"Helping the environment":["Do you think individuals or governments are more responsible for protecting the environment?","Should companies be fined for polluting?","Do you think climate change is the most serious problem facing the world?","What can young people do to reduce their environmental impact?"],
+"A special visit":["Do you think tourism is good for local communities?","What are the disadvantages of shopping malls?","Should museums be free for everyone?","Is it important to visit historical places? Why?"],
+"A free afternoon":["Do you think young people spend enough time outdoors?","Is it better to live in the city or the countryside?","Should cities have more green spaces?","Do you think online shopping will replace shopping centres?"],
+"Learning about nature":["Do you think children learn enough about nature at school?","Should zoos be banned? Why or why not?","Is it important for young people to understand environmental issues?","Do you think gardening is a useful skill?"],
+"A famous speaker":["Do you think social media stars are good role models?","Should schools invite more famous people to speak?","Are sports champions better role models than musicians or actors?","Do you think young people are too influenced by celebrities?"],
+"A day out":["Do you think live music events are better than recorded music?","Should historical buildings be preserved or modernised?","Is it important for families to spend time together?","Do you think entertainment is too expensive nowadays?"],
+"A surprise":["Do you think birthdays are important celebrations?","Is it better to give experiences or presents?","Should people spend a lot of money on parties?","Do you think surprises are always a good idea?"],
+"Joining a club":["Do you think after-school clubs are important?","Should fitness clubs be free for young people?","Is it better to join a club or do activities independently?","Do you think art is an important part of education?"],
+"Helping your community":["Do you think young people do enough to help their community?","Should community service be compulsory for students?","What are the benefits of volunteering?","Do you think older people receive enough help from society?"],
+"A visit from a friend":["Do you think it is important to show visitors around your local area?","Is hospitality important in your culture?","Do you think people are less hospitable than in the past?","Should tourists learn about local customs before visiting?"],
+"A new room for your school":["Do you think schools need more spaces for relaxation?","Is it better to have quiet study areas or social spaces?","Should students be involved in decisions about school facilities?","Do you think school buildings affect learning?"],
+"Writing an article":["Do you think school magazines are still relevant?","Is it better to write by hand or use a computer?","Should students be taught journalism skills?","Do you think people read less than they used to?"],
+"Clothes":["Do you think fast fashion is a problem?","Should people buy fewer clothes to help the environment?","Is it important to follow fashion trends?","Do you think uniforms are a good idea for schools?"],
+"Holiday activities":["Do you think families should holiday together?","Is adventure tourism becoming too dangerous?","Should schools organise more educational trips?","Do you think people work too much and holiday too little?"],
+"Travelling to school":["Do you think governments should make public transport free for students?","Is cycling to school safe enough?","Should schools provide transport for all students?","Do you think cars should be banned near schools?"],
+"Sports":["Do you think competitive sport is good for children?","Should schools focus on team sports or individual sports?","Is it better to exercise indoors or outdoors?","Do you think professional athletes are paid too much?"],
+"Research":["Do you think the internet is a reliable source of information?","Should students be taught how to check facts online?","Is it better to learn from books or from experience?","Do you think technology has made research easier?"],
+"A birthday meal":["Do you think eating out is too expensive?","Is home cooking becoming a lost skill?","Should people celebrate birthdays in a big way?","Do you think restaurants waste too much food?"],
+"School improvements":["Do you think schools spend enough money on facilities?","Is it more important to improve classrooms or outdoor areas?","Should students help design their school?","Do you think the appearance of a school affects learning?"],
+"Watching films":["Do you think parents should control what films their children watch?","Are online reviews trustworthy?","Has streaming changed the film industry for the better?","Do you think cinemas will disappear in the future?"],
+"Volunteering":["Do you think everyone should volunteer in their community?","Should schools reward students for volunteering?","Is planting trees an effective way to fight climate change?","Do you think young people care enough about the environment?"],
+"New developments":["Do you think tourism brings more benefits or problems to an area?","Should local residents have a say in new building projects?","Is it better to build hotels or public facilities?","Do you think sport facilities are used enough by the community?"]
+},
+
+shadowing:[
+"I would argue that public transport is much more convenient than driving.",
+"On the one hand, studying at home allows more flexibility.",
+"However, we must also consider the negative impact on the environment.",
+"In my opinion, this is a complex issue with no easy answer.",
+"Having said that, I believe the advantages outweigh the disadvantages.",
+"What I mean is that we need to look at both sides of the argument.",
+"To sum up, I would definitely choose the second option.",
+"The main reason for this is that it saves a lot of time and money."
+]
+};
+
+const ADAPTIVE_EXERCISES = {
+"short answers":{title:"Extiende tus respuestas",desc:"Practica responder con al menos 3-4 oraciones. Evita 'yes/no' sin explicacion.",task:"Responde: 'Do you like sports?' con 4 oraciones que incluyan because, although, and."},
+"hesitation":{title:"Fluidez sin pausas",desc:"Usa conectores para ganar tiempo: 'That's an interesting question...', 'Well, I think...', 'Let me think...'",task:"Graba una respuesta de 30 segundos sobre tu ciudad sin pausas mayores a 2 segundos."},
+"grammar range":{title:"Estructuras complejas",desc:"Incluye: condicionales (If I could...), relativos (The reason why...), pasivas (It is said that...)",task:"Habla 1 minuto sobre 'The future of education' usando 2 condicionales y 1 pasiva."},
+"vocabulary":{title:"Vocabulario academico",desc:"Reemplaza palabras basicas: good -> beneficial/advantageous, bad -> detrimental/problematic, think -> argue/maintain",task:"Repite esta frase: 'I would argue that this approach is considerably more beneficial.'"},
+"pronunciation-th":{title:"Sonido /θ/ y /ð/",desc:"Think (sin voz) vs This (con voz). Pon la punta de la lengua entre los dientes.",task:"Practica: 'I think this method is better than that one.' Repite 5 veces."},
+"linking":{title:"Conectores discursivos",desc:"On the one hand... on the other hand, Furthermore, Nevertheless, Consequently",task:"Habla 45 segundos comparando dos hobbies usando 4 conectores diferentes."},
+"opinion":{title:"Dar opiniones firmes",desc:"In my opinion... / I strongly believe that... / From my perspective... / I am convinced that...",task:"Da tu opinion sobre 3 temas usando frases diferentes cada vez."}
+};
+
+// ===================== STATE =====================
+let currentUser = null;
+let currentExam = {mode:'',phase:0,topic:'',qIndex:0,card:null,answers:[],transcript:'',startTime:null};
+let recognition = null;
+let synth = window.speechSynthesis;
+let isRecording = false;
+let timerInterval = null;
+let studentSort = 'name';
+
+// ===================== AUTH =====================
+const ADMIN_EMAIL = 'profesor@igcse.com';
+const ADMIN_PASS = 'admin0510';
+
+function getLocalUsers(){return JSON.parse(localStorage.getItem('igcse_users')||'{}')}
+function saveLocalUsers(u){localStorage.setItem('igcse_users',JSON.stringify(u))}
+
+function showRegister(){document.getElementById('loginForm').classList.add('hidden');document.getElementById('registerForm').classList.remove('hidden')}
+function showLogin(){document.getElementById('registerForm').classList.add('hidden');document.getElementById('loginForm').classList.remove('hidden')}
+
+async function doLogin(){
+const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+const pass = document.getElementById('loginPass').value;
+const err = document.getElementById('loginError');
+if(!email||!pass){err.textContent='Completa todos los campos';err.style.display='block';return}
+const allowed = await getAllowedEmails();
+if(!allowed.includes(email)){err.textContent='Este email no esta autorizado por el profesor';err.style.display='block';return}
+const users = getLocalUsers();
+if(!users[email]||users[email].pass!==pass){
+  if(db){try{const doc=await db.collection('users').doc(email).get();if(doc.exists&&doc.data().pass===pass){currentUser={email,...doc.data()};enterApp();return;}}catch(e){}}
+  err.textContent='Email o contraseña incorrectos';err.style.display='block';return;
+}
+currentUser = {email,...users[email]};
+if(db){syncUserFromCloud(email)}
+enterApp();
+}
+
+async function doRegister(){
+const name = document.getElementById('regName').value.trim();
+const email = document.getElementById('regEmail').value.trim().toLowerCase();
+const pass = document.getElementById('regPass').value;
+const err = document.getElementById('regError');
+if(!name||!email||!pass){err.textContent='Completa todos los campos';err.style.display='block';return}
+if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres';err.style.display='block';return}
+const allowed = await getAllowedEmails();
+if(!allowed.includes(email)){err.textContent='Este email no esta autorizado. Pidele a tu profesor que te agregue.';err.style.display='block';return}
+const users = getLocalUsers();
+if(users[email]){err.textContent='Este email ya esta registrado';err.style.display='block';return}
+const newUser = {name,pass,role:email===ADMIN_EMAIL?'admin':'student',sessions:0,totalMinutes:0,scores:{grammar:5,vocab:5,fluency:5,pron:5},weaknesses:[],history:[],createdAt:new Date().toISOString()};
+users[email] = newUser;
+saveLocalUsers(users);
+if(db){await db.collection('users').doc(email).set(newUser)}
+currentUser = {email,...newUser};
+enterApp();
+}
+
+function enterApp(){
+document.getElementById('loginScreen').classList.add('hidden');
+document.getElementById('appScreen').style.display='block';
+if(currentUser.role==='admin'){document.getElementById('adminBtn').style.display='flex';loadAdminPanel();}
+updateDashboard();
+initSpeech();
+}
+
+function logout(){
+currentUser=null;
+document.getElementById('appScreen').style.display='none';
+document.getElementById('loginScreen').classList.remove('hidden');
+showLogin();
+}
+
+// ===================== FIREBASE HELPERS =====================
+async function getAllowedEmails(){
+if(!db){
+  let emails = JSON.parse(localStorage.getItem('igcse_allowed_emails')||'[]');
+  if(!emails.includes(ADMIN_EMAIL)) emails.unshift(ADMIN_EMAIL);
+  return emails;
+}
+try{
+  const snap = await db.collection('whitelist').get();
+  let emails = snap.docs.map(d=>d.id);
+  if(!emails.includes(ADMIN_EMAIL)) emails.unshift(ADMIN_EMAIL);
+  return emails;
+}catch(e){
+  let emails = JSON.parse(localStorage.getItem('igcse_allowed_emails')||'[]');
+  if(!emails.includes(ADMIN_EMAIL)) emails.unshift(ADMIN_EMAIL);
+  return emails;
+}
+}
+
+async function saveAllowedEmails(emails){
+localStorage.setItem('igcse_allowed_emails',JSON.stringify(emails));
+if(!db) return;
+const batch = db.batch();
+const existing = await db.collection('whitelist').get();
+existing.docs.forEach(d=>batch.delete(d.ref));
+emails.forEach(e=>batch.set(db.collection('whitelist').doc(e),{addedAt:new Date().toISOString()}));
+await batch.commit();
+}
+
+async function syncUserToCloud(){
+if(!db||!currentUser) return;
+await db.collection('users').doc(currentUser.email).set({
+  name:currentUser.name,role:currentUser.role,sessions:currentUser.sessions||0,totalMinutes:currentUser.totalMinutes||0,
+  scores:currentUser.scores||{},weaknesses:currentUser.weaknesses||[],history:currentUser.history||[],lastActive:new Date().toISOString()
+},{merge:true});
+}
+
+async function syncUserFromCloud(email){
+if(!db) return;
+try{
+  const doc = await db.collection('users').doc(email).get();
+  if(doc.exists){
+    const data = doc.data();
+    const users = getLocalUsers();
+    users[email] = {...users[email],...data};
+    saveLocalUsers(users);
+    currentUser = {email,...users[email]};
+  }
+}catch(e){}
+}
+
+async function saveSessionToCloud(session){
+if(!db||!currentUser) return;
+await db.collection('sessions').add({
+  ...session,studentEmail:currentUser.email,studentName:currentUser.name,
+  timestamp:firebase.firestore.FieldValue.serverTimestamp()
+});
+}
+
+// ===================== SPEECH =====================
+function initSpeech(){
+if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+  alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome en Android o Chrome/Edge en PC.');
+  return;
+}
+const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+recognition = new SR();
+recognition.lang = 'en-GB';
+recognition.continuous = true;
+recognition.interimResults = true;
+recognition.onresult = (e)=>{
+  let final='';
+  for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal) final+=e.results[i][0].transcript+' ';}
+  if(final) currentExam.transcript+=final;
+  document.getElementById('transcriptText').textContent = currentExam.transcript || '--';
+};
+}
+
+function speak(text,rate=0.9){
+if(!synth) return;
+synth.cancel();
+const u = new SpeechSynthesisUtterance(text);
+u.lang = 'en-GB'; u.rate=rate; u.pitch=1;
+synth.speak(u);
+document.getElementById('waveform').classList.remove('hidden');
+setTimeout(()=>document.getElementById('waveform').classList.add('hidden'), text.length*80);
+return u;
+}
+
+function toggleRecord(){
+if(!recognition){alert('Reconocimiento de voz no disponible. Intenta con Chrome.');return}
+const btn = document.getElementById('btnRecord');
+if(isRecording){
+  isRecording=false;recognition.stop();
+  btn.textContent='🎤 Grabar respuesta';btn.classList.remove('btn-danger');btn.classList.add('btn-success');
+  document.getElementById('examinerBox').classList.remove('recording');
+  document.getElementById('transcriptCard').classList.remove('hidden');
+}else{
+  isRecording=true;currentExam.transcript='';recognition.start();
+  btn.textContent='⏹️ Detener grabacion';btn.classList.remove('btn-success');btn.classList.add('btn-danger');
+  document.getElementById('examinerBox').classList.add('recording');
+  document.getElementById('transcriptCard').classList.add('hidden');
+}
+}
+
+// ===================== NAV =====================
+function navTo(section){
+document.querySelectorAll('.section').forEach(s=>s.classList.add('hidden'));
+document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));
+if(section==='dash'){document.getElementById('dashSection').classList.remove('hidden');document.querySelector('.bottom-nav button:nth-child(1)').classList.add('active');updateDashboard()}
+if(section==='progress'){document.getElementById('progressSection').classList.remove('hidden');document.querySelector('.bottom-nav button:nth-child(2)').classList.add('active');loadProgress()}
+if(section==='admin'){document.getElementById('adminSection').classList.remove('hidden');document.querySelector('.bottom-nav button:nth-child(3)').classList.add('active')}
+}
+
+function backToDash(){navTo('dash')}
+function retrySame(){startPart(currentExam.mode)}
+
+// ===================== DASHBOARD =====================
+function updateDashboard(){
+if(!currentUser) return;
+document.getElementById('stSessions').textContent = currentUser.sessions||0;
+const avg = Math.round(((currentUser.scores?.grammar||5)+(currentUser.scores?.vocab||5)+(currentUser.scores?.fluency||5)+(currentUser.scores?.pron||5))/4*10)/10;
+document.getElementById('stScore').textContent = avg+'/10';
+document.getElementById('stTime').textContent = currentUser.totalMinutes||0;
+document.getElementById('stLevel').textContent = avg>=7?'B2+':avg>=5?'B1':'A2';
+const wc = document.getElementById('weaknessCard');
+const wt = document.getElementById('weaknessTags');
+const wa = document.getElementById('weaknessAdvice');
+if(currentUser.weaknesses?.length){
+  wc.style.display='block';
+  wt.innerHTML = currentUser.weaknesses.map(w=>`<span class="tag weak">${w}</span>`).join('');
+  const exKeys = currentUser.weaknesses.map(w=>Object.keys(ADAPTIVE_EXERCISES).find(k=>w.toLowerCase().includes(k.split('-')[0]))).filter(Boolean);
+  wa.innerHTML = exKeys.length?`Te recomendamos: <strong>${exKeys.slice(0,2).map(k=>ADAPTIVE_EXERCISES[k].title).join(', ')}</strong>`:'Sigue practicando para mejorar estas areas.';
+}else{wc.style.display='none'}
+}
+
+// ===================== EXAM ENGINE =====================
+function startFullMock(){startExam('mock')}
+function startPart(mode){startExam(mode)}
+
+function startExam(mode){
+currentExam = {mode,phase:0,topic:'',qIndex:0,card:null,answers:[],transcript:'',startTime:Date.now()};
+document.querySelectorAll('.section').forEach(s=>s.classList.add('hidden'));
+document.getElementById('examSection').classList.remove('hidden');
+document.getElementById('bottomNav').style.display='none';
+document.getElementById('pageTitle').textContent = mode==='mock'?'Examen Completo':mode==='part1'?'Part 1: Interview':mode==='part2'?'Part 2: Short Talk':'Part 3: Discussion';
+document.getElementById('cardBox').style.display='none';
+document.getElementById('transcriptCard').classList.add('hidden');
+document.getElementById('examTimer').classList.add('hidden');
+document.getElementById('btnStart').classList.remove('hidden');
+document.getElementById('btnNext').classList.add('hidden');
+document.getElementById('btnRecord').classList.add('hidden');
+document.getElementById('btnFinish').classList.add('hidden');
+document.getElementById('btnStart').textContent = 'Iniciar';
+
+if(mode==='mock'){
+  document.getElementById('examBadge').textContent = 'WARM-UP';
+  document.getElementById('examText').textContent = 'Presiona Iniciar para comenzar el examen completo. Duracion: 10-15 minutos.';
+}else if(mode==='part1'){
+  const topics = Object.keys(EXAM_DATA.part1);
+  currentExam.topic = topics[Math.floor(Math.random()*topics.length)];
+  document.getElementById('examBadge').textContent = 'PART 1 - INTERVIEW';
+  document.getElementById('examText').textContent = `Topic: ${currentExam.topic}. Presiona Iniciar para la primera pregunta.`;
+}else if(mode==='part2'){
+  currentExam.card = EXAM_DATA.part2[Math.floor(Math.random()*EXAM_DATA.part2.length)];
+  document.getElementById('examBadge').textContent = 'PART 2 - SHORT TALK';
+  document.getElementById('examText').textContent = 'Te mostrare una tarjeta de tema. Tendras 1 minuto para prepararte.';
+  document.getElementById('cardTitle').textContent = `Topic: ${currentExam.card.topic}`;
+  document.getElementById('cardA').textContent = currentExam.card.a;
+  document.getElementById('cardB').textContent = currentExam.card.b;
+  document.getElementById('cardPoints').textContent = currentExam.card.points.join(', ');
+  document.getElementById('cardPaper').textContent = `Paper ${currentExam.card.paper}`;
+}else if(mode==='part3'){
+  if(!currentExam.card) currentExam.card = EXAM_DATA.part2[0];
+  currentExam.topic = currentExam.card.topic;
+  document.getElementById('examBadge').textContent = 'PART 3 - DISCUSSION';
+  document.getElementById('examText').textContent = `Topic: ${currentExam.topic}. Preguntas de discusion abstracta.`;
+}
+}
+
+function examAction(){
+document.getElementById('btnStart').classList.add('hidden');
+if(currentExam.mode==='mock'){mockFlow()}
+else if(currentExam.mode==='part1'){part1Flow()}
+else if(currentExam.mode==='part2'){part2Flow()}
+else if(currentExam.mode==='part3'){part3Flow()}
+}
+
+function mockFlow(){
+const phases = [
+{badge:'WARM-UP',text:'Hello! Please sit down. This is the IGCSE Speaking test. First, a warm-up. Tell me about your day.',action:'record'},
+{badge:'PART 1 - INTERVIEW',text:"Let's talk about your free time. What do you enjoy doing in your free time?",action:'record'},
+{badge:'PART 1 - INTERVIEW',text:'Do you prefer spending free time alone or with friends? Why?',action:'record'},
+{badge:'PART 2 - SHORT TALK',text:'Now Part 2. Here is your topic card. You have one minute to prepare.',action:'card'},
+{badge:'PART 2 - SHORT TALK',text:'Please begin your short talk. Remember to compare both options.',action:'record2min'},
+{badge:'PART 3 - DISCUSSION',text:"Let's discuss this topic further. Do you think people have enough free time nowadays?",action:'record'},
+{badge:'PART 3 - DISCUSSION',text:'What are the benefits of having hobbies?',action:'record'},
+{badge:'END',text:'Thank you. That is the end of the test.',action:'finish'}
+];
+if(currentExam.phase>=phases.length){examFinish();return}
+const p = phases[currentExam.phase];
+document.getElementById('examBadge').textContent = p.badge;
+document.getElementById('examText').textContent = p.text;
+speak(p.text);
+if(p.action==='card'){
+  document.getElementById('cardBox').style.display='block';
+  document.getElementById('btnNext').classList.remove('hidden');
+  startTimer(60);
+}else if(p.action==='record2min'){
+  document.getElementById('btnRecord').classList.remove('hidden');
+  startTimer(120);
+}else if(p.action==='record'){
+  document.getElementById('btnRecord').classList.remove('hidden');
+}else if(p.action==='finish'){
+  document.getElementById('btnFinish').classList.remove('hidden');
+}else{
+  document.getElementById('btnNext').classList.remove('hidden');
+}
+currentExam.phase++;
+}
+
+function part1Flow(){
+const qs = EXAM_DATA.part1[currentExam.topic];
+if(currentExam.qIndex>=qs.length){
+  document.getElementById('examText').textContent = 'Interview complete. Click Ver resultados.';
+  document.getElementById('btnFinish').classList.remove('hidden');
+  return;
+}
+const q = qs[currentExam.qIndex];
+document.getElementById('examText').textContent = q;
+speak(q);
+document.getElementById('btnRecord').classList.remove('hidden');
+document.getElementById('btnNext').classList.remove('hidden');
+currentExam.qIndex++;
+}
+
+function part2Flow(){
+if(currentExam.phase===0){
+  document.getElementById('cardBox').style.display='block';
+  document.getElementById('examText').textContent = 'You have ONE minute to prepare. Plan your talk using both options.';
+  speak('You have one minute to prepare. Here is your topic.');
+  startTimer(60);
+  document.getElementById('btnNext').classList.remove('hidden');
+  currentExam.phase=1;
+}else if(currentExam.phase===1){
+  clearInterval(timerInterval);
+  document.getElementById('examTimer').classList.add('hidden');
+  document.getElementById('examText').textContent = 'Please begin your short talk. Speak for about 2 minutes.';
+  speak('Please begin your short talk.');
+  document.getElementById('btnRecord').classList.remove('hidden');
+  document.getElementById('btnNext').classList.add('hidden');
+  document.getElementById('btnFinish').classList.remove('hidden');
+  startTimer(120);
+}
+}
+
+function part3Flow(){
+const qs = EXAM_DATA.part3[currentExam.topic]||EXAM_DATA.part3['Transport'];
+if(currentExam.qIndex>=qs.length){
+  document.getElementById('examText').textContent = 'Discussion complete. Click Ver resultados.';
+  document.getElementById('btnFinish').classList.remove('hidden');
+  return;
+}
+const q = qs[currentExam.qIndex];
+document.getElementById('examText').textContent = q;
+speak(q);
+document.getElementById('btnRecord').classList.remove('hidden');
+document.getElementById('btnNext').classList.remove('hidden');
+currentExam.qIndex++;
+}
+
+function examNext(){
+if(isRecording) toggleRecord();
+if(currentExam.mode==='mock') mockFlow();
+else if(currentExam.mode==='part1') part1Flow();
+else if(currentExam.mode==='part2') part2Flow();
+else if(currentExam.mode==='part3') part3Flow();
+}
+
+function startTimer(seconds){
+clearInterval(timerInterval);
+const el = document.getElementById('examTimer');
+el.classList.remove('hidden');
+let s = seconds;
+el.textContent = `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+timerInterval = setInterval(()=>{
+  s--;
+  el.textContent = `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+  if(s<=0){clearInterval(timerInterval);el.classList.add('hidden');}
+},1000);
+}
+
+// ===================== FEEDBACK ENGINE =====================
+async function examFinish(){
+if(isRecording) toggleRecord();
+clearInterval(timerInterval);
+const mins = Math.round((Date.now()-currentExam.startTime)/60000);
+currentUser.totalMinutes = (currentUser.totalMinutes||0)+mins;
+currentUser.sessions = (currentUser.sessions||0)+1;
+
+const txt = currentExam.transcript.toLowerCase();
+const words = txt.split(/\s+/).filter(w=>w.length>0);
+const wordCount = words.length;
+
+let gram=5,voc=5,flu=5,pro=5;
+if(wordCount>50){flu+=1;voc+=1}
+if(wordCount>100){flu+=2;voc+=2}
+if(txt.includes('because')||txt.includes('although')||txt.includes('however')){gram+=1;voc+=1}
+if(txt.includes('on the one hand')||txt.includes('furthermore')||txt.includes('nevertheless')){gram+=1.5;voc+=1.5}
+if(txt.includes('in my opinion')||txt.includes('i believe')||txt.includes('from my perspective')){voc+=1}
+if(txt.includes('would')||txt.includes('could')||txt.includes('might')){gram+=1}
+if(wordCount<20){flu-=2;voc-=1}
+if(txt.split('.').length<3 && wordCount>10){flu-=1}
+
+gram=Math.min(10,Math.max(2,Math.round(gram)));
+voc=Math.min(10,Math.max(2,Math.round(voc)));
+flu=Math.min(10,Math.max(2,Math.round(flu)));
+pro=Math.min(10,Math.max(3,Math.round(pro+Math.random()*2-1)));
+
+currentUser.scores = {grammar:gram,vocab:voc,fluency:flu,pron:pro};
+
+const newWeak = [];
+if(wordCount<30) newWeak.push('short answers');
+if(!txt.includes('because')&&!txt.includes('so')) newWeak.push('justification');
+if(flu<6) newWeak.push('hesitation');
+if(gram<6) newWeak.push('grammar range');
+if(voc<6) newWeak.push('vocabulary');
+if(!txt.includes('on the one hand')&&!txt.includes('however')) newWeak.push('linking');
+currentUser.weaknesses = [...new Set([...(currentUser.weaknesses||[]),...newWeak])].slice(0,5);
+
+currentUser.history = currentUser.history||[];
+currentUser.history.unshift({date:new Date().toLocaleDateString(),mode:currentExam.mode,topic:currentExam.topic||currentExam.card?.topic,scores:{grammar:gram,vocab:voc,fluency:flu,pron:pro},wordCount});
+if(currentUser.history.length>20) currentUser.history.pop();
+
+const users = getLocalUsers();
+users[currentUser.email] = {...users[currentUser.email],...currentUser};
+saveLocalUsers(users);
+await syncUserToCloud();
+await saveSessionToCloud({mode:currentExam.mode,topic:currentExam.topic||currentExam.card?.topic,wordCount,scores:{grammar:gram,vocab:voc,fluency:flu,pron:pro},transcript:currentExam.transcript,duration:mins,weaknesses:newWeak});
+
+document.getElementById('examSection').classList.add('hidden');
+document.getElementById('feedbackSection').classList.remove('hidden');
+document.getElementById('bottomNav').style.display='flex';
+
+const total = gram+voc+flu+pro;
+document.getElementById('scoreTotal').textContent = total+'/40';
+document.getElementById('scoreCircle').style.strokeDashoffset = 201-(total/40)*201;
+
+document.getElementById('barGram').style.width = gram*10+'%'; document.getElementById('txtGram').textContent=gram+'/10';
+document.getElementById('barVoc').style.width = voc*10+'%'; document.getElementById('txtVoc').textContent=voc+'/10';
+document.getElementById('barFlu').style.width = flu*10+'%'; document.getElementById('txtFlu').textContent=flu+'/10';
+document.getElementById('barPro').style.width = pro*10+'%'; document.getElementById('txtPro').textContent=pro+'/10';
+
+let fb = '';
+if(total>=32) fb='Excellent performance! You demonstrated strong command of English with good development and range. To achieve full marks, continue using complex structures consistently.';
+else if(total>=24) fb='Good effort! You communicated effectively. Work on extending your answers and using a wider range of connectors and complex grammar.';
+else if(total>=16) fb='You conveyed basic ideas but need to develop answers more fully. Avoid short responses. Practice using linking words and giving reasons.';
+else fb='Keep practicing! Focus on speaking more fluently and developing your answers beyond 2-3 sentences. Use the adaptive exercises below.';
+document.getElementById('feedbackText').textContent = fb;
+
+const ft = document.getElementById('feedbackTags');
+ft.innerHTML = '';
+if(gram<6) ft.innerHTML+='<span class="tag weak">Grammar</span>';
+if(voc<6) ft.innerHTML+='<span class="tag weak">Vocabulary</span>';
+if(flu<6) ft.innerHTML+='<span class="tag weak">Fluency</span>';
+if(pro<6) ft.innerHTML+='<span class="tag weak">Pronunciation</span>';
+if(total>=28) ft.innerHTML+='<span class="tag strong">Well done!</span>';
+
+const exDiv = document.getElementById('adaptiveExercises');
+exDiv.innerHTML = '';
+currentUser.weaknesses.slice(0,3).forEach(w=>{
+  const key = Object.keys(ADAPTIVE_EXERCISES).find(k=>w.toLowerCase().includes(k.split('-')[0]));
+  if(key){
+    const ex = ADAPTIVE_EXERCISES[key];
+    exDiv.innerHTML += `<div style="background:#f8fafc;padding:14px;border-radius:12px;margin-bottom:10px;border-left:4px solid var(--accent)"><strong>${ex.title}</strong><p style="font-size:.85rem;color:#64748b;margin:6px 0">${ex.desc}</p><div style="background:#fff;padding:10px;border-radius:8px;font-size:.85rem"><strong>Tarea:</strong> ${ex.task}</div></div>`
