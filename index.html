@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>IGCSE 0510 Speaking Trainer</title>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
 :root{--primary:#1e3a8a;--secondary:#3b82f6;--accent:#f59e0b;--success:#10b981;--danger:#ef4444;--bg:#f8fafc;--card:#fff;--text:#1e2937}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
@@ -297,24 +295,8 @@ label{display:block;margin-bottom:6px;font-weight:600;font-size:.9rem;color:#475
 
 <script>
 
-// ===================== FIREBASE CONFIG =====================
-const firebaseConfig = {
-  apiKey: "AIzaSyBa1ZtsSsbgleyMVSlbAak4gPmrC6chDeM",
-  authDomain: "igcse-speaking.firebaseapp.com",
-  projectId: "igcse-speaking",
-  storageBucket: "igcse-speaking.firebasestorage.app",
-  messagingSenderId: "902395256096",
-  appId: "1:902395256096:web:7ee3e869f0483e0f808b45"
-};
-
+// ===================== FIREBASE CONFIG (disabled - using localStorage only) =====================
 let db = null;
-try {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-  console.log("Firebase OK");
-} catch(e) {
-  console.warn("Firebase offline", e);
-}
 
 // ===================== EXAM DATA - PAST PAPERS O/N 2024 =====================
 const EXAM_DATA = {
@@ -550,7 +532,7 @@ async function saveSessionToCloud(session){
 if(!db||!currentUser) return;
 await db.collection('sessions').add({
   ...session,studentEmail:currentUser.email,studentName:currentUser.name,
-  timestamp:firebase.firestore.FieldValue.serverTimestamp()
+  timestamp:new Date().toISOString()
 });
 }
 
