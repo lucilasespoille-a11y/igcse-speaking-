@@ -1059,22 +1059,6 @@ async function addAllowedEmail(){
 }
 
 async function removeEmail(email){
-    const emails = await getAllowedEmails();
-    const idx = emails.indexOf(email);
-    if(idx > -1){
-        emails.splice(idx, 1);
-        localStorage.setItem('igcse_allowed_emails', JSON.stringify(emails));
-        if(db){
-            try{
-                await saveAllowedEmails(emails);
-            }catch(e){
-                console.warn('Firebase offline');
-            }
-        }
-        loadAdminPanel();
-    }
-
-async function removeEmail(email){
   const emails = await getAllowedEmails();
   const idx = emails.indexOf(email);
   if(idx > -1){
